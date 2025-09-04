@@ -15,26 +15,8 @@ export async function fetchIssuesPaginated(
 ): Promise<Issue[] | null> {
   const client = new GitHubApiClient(authProvider);
   try {
-    // OctokitのlistForRepoはページネーション対応
-    const res = await client['octokit'].issues.listForRepo({
-      owner,
-      repo,
-      page,
-      per_page: perPage,
-    });
-    return res.data.map(issue => ({
-      id: issue.id,
-      title: issue.title,
-      state: issue.state as 'open' | 'closed',
-      labels: issue.labels.map(l => typeof l === 'string' ? l : l.name ?? ''),
-      milestone: issue.milestone?.title,
-      createdAt: issue.created_at,
-      closedAt: issue.closed_at ?? undefined,
-      storyPoint: undefined,
-    }));
+    return await client.getIssuesPaginated(owner, repo, page, perPage);
   } catch (error) {
-    const err = handleApiError(error);
-    console.error('Issue一覧取得エラー:', err);
     return null;
   }
 }
