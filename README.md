@@ -15,6 +15,7 @@ npm run dev
 ```
 
 ## 主な技術
+
 - Next.js
 - TypeScript
 - Tailwind CSS
@@ -24,6 +25,7 @@ npm run dev
 - Jest / React Testing Library
 
 ## 推奨VSCode拡張機能
+
 - ESLint
 - Prettier
 - Tailwind CSS IntelliSense
@@ -34,4 +36,5 @@ npm run dev
 - EditorConfig
 
 ## ライセンス
+
 MIT
