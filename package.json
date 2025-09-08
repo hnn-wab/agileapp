@@ -39,3 +39,20 @@
     "typescript": "^5"
   }
 }
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "devDependencies": {
+    "@octokit/rest": "^22.0.0",
+    "@types/jest": "^30.0.0",
+    "ts-jest": "^29.4.1"
+  },
+  "dependencies": {
+    "@types/react": "^19.1.12",
+    "next": "^15.5.2",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  }
+}
