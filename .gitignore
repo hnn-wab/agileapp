@@ -1,7 +1,8 @@
 # dependencies
-/node_modules
-/frontend/node_modules
-/.pnp
+node_modules/
+frontend/node_modules/
+app/node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -12,26 +13,38 @@
 # testing
 /coverage
 /frontend/coverage
+/app/coverage
 
 # next.js
-/.next/
-/frontend/.next/
-/out/
+.next/
+frontend/.next/
+app/.next/
+out/
+frontend/out/
+app/out/
 
 # production
 /build
 /frontend/build
+/app/build
 
 # misc
 .DS_Store
 Thumbs.db
 Icon?
+ehthumbs.db
+Desktop.ini
 *.pem
 *.log
 *.tmp
 *.local
 *.swp
 *.bak
+*.pack
+*.dylib
+*.gz
+*.js.map
+*.tsbuildinfo
 
 # debug
 npm-debug.log*
@@ -40,7 +53,6 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-/.env*
 .env*
 .env.local
 .env.development.local
@@ -71,7 +83,3 @@ junit.xml
 
 # lockfile（frontend側は除外）
 /frontend/package-lock.json
-
-# OS
-ehthumbs.db
-Desktop.ini
