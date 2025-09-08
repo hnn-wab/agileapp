@@ -8,6 +8,16 @@ React/Next.js/TypeScriptによるアジャイル開発支援MVP。
 npm install
 ```
 
+## 環境変数の設定例
+
+GitHub APIを利用するには、`apps/frontend/.env.local` に以下のようにPersonal Access Tokenを記載してください。
+
+```env
+NEXT_PUBLIC_GITHUB_TOKEN=your_github_pat_here
+```
+
+※ `.env.local` はセキュリティのためgit管理されません。各自で作成・設定してください。
+
 ## 開発サーバー起動
 
 ```bash
