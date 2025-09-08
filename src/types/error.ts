@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // アプリケーション内部で使うエラー型定義
 // GitHub APIエラーとアプリ独自エラーを統一的に扱うための型
 
@@ -17,12 +16,3 @@ export interface AppError {
 
 // エラーを一元管理するためのUnion型
 export type ErrorType = GitHubApiError | AppError;
-=======
-// アプリケーション共通エラー型定義
-export interface ErrorType {
-  type: 'api' | 'network' | 'auth' | 'unknown';
-  message: string;
-  status?: number;
-  details?: any;
-}
->>>>>>> 51e55cef (add scripts section to package.json and setup for Next.js dev server)
