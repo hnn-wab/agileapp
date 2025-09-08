@@ -1,7 +1,6 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
+/frontend/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -9,7 +8,6 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-/frontend/node_modules
 
 # testing
 /coverage
@@ -17,8 +15,8 @@
 
 # next.js
 /.next/
-/out/
 /frontend/.next/
+/out/
 
 # production
 /build
@@ -26,19 +24,16 @@
 
 # misc
 .DS_Store
-*.pem
 Thumbs.db
+Icon?
+*.pem
 *.log
 *.tmp
 *.local
 *.swp
-Icon?
+*.bak
 
 # debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -47,16 +42,36 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 /.env*
 .env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # vercel
-.vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-*.tsbuildinfo
-next-env.d.ts
+
+# Editor/IDE
+.vscode/
+.idea/
+.history/
+*.sublime-workspace
+*.sublime-project
+
+# npm/yarn
+.npm/
+.yarn/cache/
+
+# Test/CI
+test-results/
+junit.xml
 
 # lockfile（frontend側は除外）
 /frontend/package-lock.json
+
+# OS
+ehthumbs.db
+Desktop.ini
