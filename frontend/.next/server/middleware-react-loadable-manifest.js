@@ -1,1 +1,0 @@
-self.__REACT_LOADABLE_MANIFEST="{\"app/repoDashboard.tsx -> ../lib/githubClient\":{\"id\":\"app/repoDashboard.tsx -> ../lib/githubClient\",\"files\":[]},\"app/repoDashboard.tsx -> ./BurndownChart\":{\"id\":\"app/repoDashboard.tsx -> ./BurndownChart\",\"files\":[\"static/chunks/_app-pages-browser_app_BurndownChart_tsx.js\"]}}"
