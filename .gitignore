@@ -83,3 +83,9 @@ junit.xml
 
 # lockfile（frontend側は除外）
 /frontend/package-lock.json
+
+agileapp/
+app/
+backend/
+frontend/
+src/
