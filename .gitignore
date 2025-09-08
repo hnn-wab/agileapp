@@ -9,33 +9,54 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+/frontend/node_modules
 
 # testing
 /coverage
+/frontend/coverage
 
 # next.js
 /.next/
 /out/
+/frontend/.next/
 
 # production
 /build
+/frontend/build
 
 # misc
 .DS_Store
 *.pem
+Thumbs.db
+*.log
+*.tmp
+*.local
+*.swp
+Icon?
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
+/.env*
 .env*
 
 # vercel
+.vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+*.tsbuildinfo
+next-env.d.ts
+
+# lockfile（frontend側は除外）
+/frontend/package-lock.json
