@@ -34,15 +34,16 @@ function getBurndownData(issues: any[], start: string, end: string) {
 }
 
 export default function BurndownChart({ issues }: { issues: any[] }) {
-  // 期間自動決定: 最初の作成日〜最後のクローズ日
-  const start = useMemo(() => {
-    if (issues.length === 0) return '';
-    return issues.reduce((min, i) => i.created_at < min ? i.created_at : min, issues[0].created_at).slice(0, 10);
-  }, [issues]);
+  // 期間: 今日から過去3ヶ月（90日）
   const end = useMemo(() => {
-    if (issues.length === 0) return '';
-    return issues.reduce((max, i) => (i.closed_at && i.closed_at > max) ? i.closed_at : max, issues[0].created_at).slice(0, 10);
-  }, [issues]);
+    const today = new Date();
+    return today.toISOString().slice(0, 10);
+  }, []);
+  const start = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 89); // 今日含めて90日間
+    return d.toISOString().slice(0, 10);
+  }, []);
   const burndown = useMemo(() => getBurndownData(issues, start, end), [issues, start, end]);
 
   if (!start || !end) return <div>バーンダウンデータなし</div>;
@@ -60,14 +61,19 @@ export default function BurndownChart({ issues }: { issues: any[] }) {
               borderColor: 'rgb(75, 192, 192)',
               backgroundColor: 'rgba(75, 192, 192, 0.2)',
               fill: true,
+              tension: 0.2,
             },
           ],
         }}
         options={{
           responsive: true,
           plugins: {
-            legend: { position: 'top' as const },
-            title: { display: true, text: 'バーンダウンチャート' },
+            legend: { display: true },
+            title: { display: false },
+          },
+          scales: {
+            x: { title: { display: true, text: '日付' } },
+            y: { title: { display: true, text: '残課題数' }, beginAtZero: true },
           },
         }}
       />
