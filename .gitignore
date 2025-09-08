@@ -27,7 +27,7 @@ app/out/
 /build
 /frontend/build
 /app/build
-
+## /apps/frontend の無視設定を解除
 # misc
 .DS_Store
 Thumbs.db
@@ -83,9 +83,3 @@ junit.xml
 
 # lockfile（frontend側は除外）
 /frontend/package-lock.json
-
-agileapp/
-app/
-backend/
-frontend/
-src/

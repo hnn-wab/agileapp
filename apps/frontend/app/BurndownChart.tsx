@@ -34,14 +34,14 @@ function getBurndownData(issues: any[], start: string, end: string) {
 }
 
 export default function BurndownChart({ issues }: { issues: any[] }) {
-  // 期間: 今日から過去3ヶ月（90日）
+  // 期間: 今日から過去6ヶ月（180日）
   const end = useMemo(() => {
     const today = new Date();
     return today.toISOString().slice(0, 10);
   }, []);
   const start = useMemo(() => {
     const d = new Date();
-    d.setDate(d.getDate() - 89); // 今日含めて90日間
+    d.setDate(d.getDate() - 179); // 今日含めて180日間
     return d.toISOString().slice(0, 10);
   }, []);
   const burndown = useMemo(() => getBurndownData(issues, start, end), [issues, start, end]);
