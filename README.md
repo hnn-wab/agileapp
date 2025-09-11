@@ -4,9 +4,14 @@ React/Next.js/TypeScriptによるアジャイル開発支援MVP。
 
 ## セットアップ
 
+リポジトリのルート（`agileapp` ディレクトリ）で以下を実行してください。
+
 ```bash
+cd agileapp
 npm install
 ```
+
+※ `apps/frontend` など各パッケージの依存も自動的にインストールされます。
 
 ## 環境変数の設定例
 
