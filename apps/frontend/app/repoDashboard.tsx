@@ -1,5 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
+
+// エラー型
+type DashboardError = string | null;
 import { fetchIssues } from "../lib/githubApi";
 import dynamic from "next/dynamic";
 
@@ -21,6 +24,7 @@ export default function RepoDashboard({ repos, token }: Props) {
   const [selected, setSelected] = useState(0); // index
   const repo = repos[selected];
   const [repoInfo, setRepoInfo] = useState<any>(null);
+  const [error, setError] = useState<DashboardError>(null);
   const [issues, setIssues] = useState<any[]>([]);
   const [commits, setCommits] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
@@ -35,35 +39,40 @@ export default function RepoDashboard({ repos, token }: Props) {
   useEffect(() => {
     if (!repo) return;
     const fetchAll = async () => {
-      const { createGitHubClient } = await import("../lib/githubClient");
-      const octokit = createGitHubClient(token);
-      // リポジトリ情報
-      const repoRes = await octokit.repos.get({ owner: repo.owner.login, repo: repo.name });
-      setRepoInfo(repoRes.data);
-      // オーナープロフィール
-      setOwnerProfile((await octokit.users.getByUsername({ username: repo.owner.login })).data);
-      // Issue
-      setIssues(await fetchIssues(repo.owner.login, repo.name, token));
-      // PR
-      setPulls((await octokit.pulls.list({ owner: repo.owner.login, repo: repo.name, state: "all", per_page: 30 })).data);
-      // コミット
-      setCommits((await octokit.repos.listCommits({ owner: repo.owner.login, repo: repo.name })).data);
-      // ブランチ
-      setBranches((await octokit.repos.listBranches({ owner: repo.owner.login, repo: repo.name })).data);
-      // ラベル
-      setLabels((await octokit.issues.listLabelsForRepo({ owner: repo.owner.login, repo: repo.name })).data);
-      // コントリビューター
-      setContributors((await octokit.repos.listContributors({ owner: repo.owner.login, repo: repo.name })).data);
-      // リリース
-      setReleases((await octokit.repos.listReleases({ owner: repo.owner.login, repo: repo.name })).data);
-      // マイルストーン
-      setMilestones((await octokit.issues.listMilestones({ owner: repo.owner.login, repo: repo.name })).data);
-      // ツリー（デフォルトブランチ）
-      if (repoRes.data.default_branch) {
-        const treeRes = await octokit.git.getTree({ owner: repo.owner.login, repo: repo.name, tree_sha: repoRes.data.default_branch, recursive: "true" });
-        setTree(treeRes.data.tree || []);
-      } else {
-        setTree([]);
+      setError(null);
+      try {
+        const { createGitHubClient } = await import("../lib/githubClient");
+        const octokit = createGitHubClient(token);
+        // リポジトリ情報
+        const repoRes = await octokit.repos.get({ owner: repo.owner.login, repo: repo.name });
+        setRepoInfo(repoRes.data);
+        // オーナープロフィール
+        setOwnerProfile((await octokit.users.getByUsername({ username: repo.owner.login })).data);
+        // Issue
+        setIssues(await fetchIssues(repo.owner.login, repo.name, token));
+        // PR
+        setPulls((await octokit.pulls.list({ owner: repo.owner.login, repo: repo.name, state: "all", per_page: 30 })).data);
+        // コミット
+        setCommits((await octokit.repos.listCommits({ owner: repo.owner.login, repo: repo.name })).data);
+        // ブランチ
+        setBranches((await octokit.repos.listBranches({ owner: repo.owner.login, repo: repo.name })).data);
+        // ラベル
+        setLabels((await octokit.issues.listLabelsForRepo({ owner: repo.owner.login, repo: repo.name })).data);
+        // コントリビューター
+        setContributors((await octokit.repos.listContributors({ owner: repo.owner.login, repo: repo.name })).data);
+        // リリース
+        setReleases((await octokit.repos.listReleases({ owner: repo.owner.login, repo: repo.name })).data);
+        // マイルストーン
+        setMilestones((await octokit.issues.listMilestones({ owner: repo.owner.login, repo: repo.name })).data);
+        // ツリー（デフォルトブランチ）
+        if (repoRes.data.default_branch) {
+          const treeRes = await octokit.git.getTree({ owner: repo.owner.login, repo: repo.name, tree_sha: repoRes.data.default_branch, recursive: "true" });
+          setTree(treeRes.data.tree || []);
+        } else {
+          setTree([]);
+        }
+      } catch (e: any) {
+        setError(e?.message || "データ取得に失敗しました");
       }
     };
     fetchAll();
@@ -71,6 +80,9 @@ export default function RepoDashboard({ repos, token }: Props) {
 
   return (
     <div>
+      {error && (
+        <div style={{ color: 'red', margin: '16px 0' }}>エラー: {error}</div>
+      )}
       <h2>自分がアクセスできるリポジトリ一覧</h2>
       <select value={selected} onChange={e => setSelected(Number(e.target.value))}>
         {repos.map((r, i) => (
