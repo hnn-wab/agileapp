@@ -35,6 +35,9 @@ export default function RepoDashboard({ repos, token }: Props) {
   const [tree, setTree] = useState<any[]>([]);
   const [milestones, setMilestones] = useState<any[]>([]);
   const [ownerProfile, setOwnerProfile] = useState<any>(null);
+  const [issueFilter, setIssueFilter] = useState<'all' | 'open' | 'closed'>('all');
+  const [issuePage, setIssuePage] = useState(1);
+  const issuesPerPage = 20;
 
   useEffect(() => {
     if (!repo) return;
@@ -133,18 +136,40 @@ export default function RepoDashboard({ repos, token }: Props) {
           <BurndownChart issues={issues} />
 
           <h2>Issue一覧</h2>
+          <div style={{ marginBottom: 8 }}>
+            <label>
+              <input type="radio" name="issueFilter" value="all" checked={issueFilter === 'all'} onChange={() => setIssueFilter('all')} /> 全て
+            </label>
+            <label style={{ marginLeft: 12 }}>
+              <input type="radio" name="issueFilter" value="open" checked={issueFilter === 'open'} onChange={() => setIssueFilter('open')} /> Open
+            </label>
+            <label style={{ marginLeft: 12 }}>
+              <input type="radio" name="issueFilter" value="closed" checked={issueFilter === 'closed'} onChange={() => setIssueFilter('closed')} /> Closed
+            </label>
+          </div>
           <ul>
-            {issues.map((issue: any) => (
-              <li key={issue.id}>
-                #{issue.number}: {issue.title} [{issue.state}]<br />
-                作成日: {issue.created_at} / 更新日: {issue.updated_at}<br />
-                担当者: {issue.assignee?.login || 'なし'}<br />
-                マイルストーン: {issue.milestone?.title || 'なし'}<br />
-                コメント数: {issue.comments}<br />
-                本文: {issue.body?.slice(0, 100)}
-              </li>
-            ))}
+            {issues
+              .filter(issue => issueFilter === 'all' ? true : issue.state === issueFilter)
+              .slice((issuePage - 1) * issuesPerPage, issuePage * issuesPerPage)
+              .map((issue: any) => (
+                <li key={issue.id}>
+                  #{issue.number}: {issue.title} [{issue.state}]<br />
+                  作成日: {issue.created_at} / 更新日: {issue.updated_at}<br />
+                  担当者: {issue.assignee?.login || 'なし'}<br />
+                  マイルストーン: {issue.milestone?.title || 'なし'}<br />
+                  コメント数: {issue.comments}<br />
+                  本文: {issue.body?.slice(0, 100)}
+                </li>
+              ))}
           </ul>
+          <div style={{ margin: '12px 0' }}>
+            <button onClick={() => setIssuePage(p => Math.max(1, p - 1))} disabled={issuePage === 1}>前へ</button>
+            <span style={{ margin: '0 8px' }}>ページ {issuePage} / {Math.max(1, Math.ceil(issues.filter(issue => issueFilter === 'all' ? true : issue.state === issueFilter).length / issuesPerPage))}</span>
+            <button onClick={() => setIssuePage(p => p + 1)}
+              disabled={issuePage >= Math.ceil(issues.filter(issue => issueFilter === 'all' ? true : issue.state === issueFilter).length / issuesPerPage)}>
+              次へ
+            </button>
+          </div>
 
           <h2>Pull Request一覧</h2>
           <ul>
