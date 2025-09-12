@@ -1,3 +1,121 @@
+"use client";
+import EmptyState from "../components/EmptyState";
+import { useState, useEffect } from "react";
+import { fetchIssues } from "../lib/githubApi";
+import type { GitHubIssue, GitHubLabel, GitHubMilestone } from '../../../packages/core/types/github';
+import LoadingSpinner from "../components/LoadingSpinner";
+import ErrorMessage from "../components/ErrorMessage";
+import dynamic from "next/dynamic";
+type TreeNode = {
+  name: string;
+  path: string;
+  type: "tree" | "blob";
+  children?: TreeNode[];
+};
+
+// エラー型
+type DashboardError = string | null;
+
+// 必要なプロパティだけ持つ独自型
+type MinimalRepoInfo = {
+  description?: string | null;
+  stargazers_count?: number;
+  forks_count?: number;
+  subscribers_count?: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+  owner?: { login: string };
+};
+type MinimalUserProfile = {
+  name?: string | null;
+  login: string;
+  avatar_url?: string | null;
+  public_repos?: number;
+  followers?: number;
+};
+
+// tree配列をツリー型データに変換
+function buildTree(tree: MinimalTreeItem[]): TreeNode[] {
+  type MutableTreeNode = Omit<TreeNode, 'children'> & { children?: Record<string, MutableTreeNode> };
+  const root: Record<string, MutableTreeNode> = {};
+  for (const item of tree) {
+    const parts = item.path.split("/");
+    let current = root;
+    let fullPath = "";
+    for (let i = 0; i < parts.length; i++) {
+      const name = parts[i];
+      fullPath += (i > 0 ? "/" : "") + name;
+      if (!current[name]) {
+        current[name] = {
+          name,
+          path: fullPath,
+          type: i === parts.length - 1 ? (item.type as "tree" | "blob") : "tree",
+          children: i === parts.length - 1 ? undefined : {},
+        };
+      }
+      if (i < parts.length - 1) {
+        if (!current[name].children) {
+          current[name].children = {};
+        }
+        current = current[name].children;
+      }
+    }
+  }
+  function toArray(obj: Record<string, MutableTreeNode>): TreeNode[] {
+    return Object.values(obj).map((node) => {
+      if (node.type === "tree") {
+        const childrenArr = node.children ? toArray(node.children) : [];
+        return { ...node, children: childrenArr };
+      } else {
+        return { ...node, children: undefined };
+      }
+    });
+  }
+  return toArray(root);
+}
+
+// ツリービュー再帰コンポーネント
+function TreeView({ nodes, level = 0 }: { nodes: TreeNode[]; level?: number }) {
+  const [open, setOpen] = useState<{ [key: string]: boolean }>({});
+  return (
+    <ul style={{ listStyle: "none", paddingLeft: level === 0 ? 0 : 16 }}>
+      {nodes.map((node) => (
+        <li key={node.path}>
+          {node.type === "tree" ? (
+            <>
+              <span
+                style={{ cursor: "pointer", fontWeight: "bold" }}
+                onClick={() => setOpen((prev) => ({ ...prev, [node.path]: !prev[node.path] }))}
+              >
+                {open[node.path] ? "📂" : "📁"} {node.name}
+              </span>
+              {open[node.path] && node.children && (
+                <TreeView nodes={node.children} level={level + 1} />
+              )}
+            </>
+          ) : (
+            <span>📄 {node.name}</span>
+          )}
+        </li>
+      ))}
+
+    </ul>
+  );
+}
+
+
+// JSTでYYYY/M/D H:mm形式に変換する共通関数
+function formatJSTDate(dateStr?: string | null): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const jst = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+  const y = jst.getFullYear();
+  const m = jst.getMonth() + 1;
+  const d = jst.getDate();
+  const h = jst.getHours();
+  const min = jst.getMinutes().toString().padStart(2, '0');
+  return `${y}/${m}/${d} ${h}:${min}`;
+}
 // 必要なプロパティのみ持つ型
 type MinimalRelease = {
   id: number;
@@ -41,35 +159,7 @@ type MinimalTreeItem = {
   path: string;
   type: string;
 };
-"use client";
-import EmptyState from "../components/EmptyState";
-import { useState, useEffect } from "react";
 
-// エラー型
-type DashboardError = string | null;
-import { fetchIssues } from "../lib/githubApi";
-
-import type { GitHubIssue, GitHubLabel, GitHubMilestone } from '../../../packages/core/types/github';
-// 必要なプロパティだけ持つ独自型
-type MinimalRepoInfo = {
-  description?: string | null;
-  stargazers_count?: number;
-  forks_count?: number;
-  subscribers_count?: number;
-  created_at?: string | null;
-  updated_at?: string | null;
-  owner?: { login: string };
-};
-type MinimalUserProfile = {
-  name?: string | null;
-  login: string;
-  avatar_url?: string | null;
-  public_repos?: number;
-  followers?: number;
-};
-import LoadingSpinner from "../components/LoadingSpinner";
-import ErrorMessage from "../components/ErrorMessage";
-import dynamic from "next/dynamic";
 
 // チャートはSSR不可なのでdynamic import
 const BurndownChart = dynamic(() => import("./BurndownChart"), { ssr: false });
@@ -177,8 +267,8 @@ export default function RepoDashboard({ repos, token }: Props) {
             <li>スター: {repoInfo.stargazers_count}</li>
             <li>フォーク: {repoInfo.forks_count}</li>
             <li>ウォッチ数: {repoInfo.subscribers_count}</li>
-            <li>作成日: {repoInfo.created_at}</li>
-            <li>更新日: {repoInfo.updated_at}</li>
+            <li>作成日: {formatJSTDate(repoInfo.created_at)}</li>
+            <li>更新日: {formatJSTDate(repoInfo.updated_at)}</li>
             <li>オーナー: {repoInfo.owner?.login}</li>
           </ul>
 
@@ -199,7 +289,7 @@ export default function RepoDashboard({ repos, token }: Props) {
             <ul>
               {releases.map((rel: MinimalRelease) => (
                 <li key={rel.id}>
-                  {rel.tag_name}（{rel.name}）: {rel.published_at} <br />
+                  {rel.tag_name}（{rel.name}）: {formatJSTDate(rel.published_at)} <br />
                   本文: {rel.body}
                   <ul>
                     {rel.assets?.map((a: MinimalAsset) => (
@@ -238,7 +328,7 @@ export default function RepoDashboard({ repos, token }: Props) {
                       .map((issue: GitHubIssue) => (
                         <li key={issue.id}>
                           #{issue.number}: {issue.title} [{issue.state}]<br />
-                          作成日: {issue.created_at} / 更新日: {issue.updated_at}<br />
+                          作成日: {formatJSTDate(issue.created_at)} / 更新日: {formatJSTDate(issue.updated_at)}<br />
                           担当者: {issue.assignee?.login || 'なし'}<br />
                           マイルストーン: {issue.milestone?.title || 'なし'}<br />
                           コメント数: {issue.comments}<br />
@@ -264,7 +354,7 @@ export default function RepoDashboard({ repos, token }: Props) {
             {pulls.map((pr: MinimalPull) => (
               <li key={pr.id}>
                 #{pr.number}: {pr.title} [{pr.state}]<br />
-                作成日: {pr.created_at} / マージ日: {pr.merged_at || '未マージ'}<br />
+                作成日: {formatJSTDate(pr.created_at)} / マージ日: {pr.merged_at ? formatJSTDate(pr.merged_at) : '未マージ'}<br />
                 作成者: {pr.user?.login}<br />
                 レビュー数: {pr.requested_reviewers?.length ?? 0}<br />
                 コメント数: {pr.comments}
@@ -292,7 +382,7 @@ export default function RepoDashboard({ repos, token }: Props) {
                       </a>
                     </td>
                     <td className="px-2 py-1 border">{commit.commit.author.name}</td>
-                    <td className="px-2 py-1 border">{new Date(commit.commit.author.date).toLocaleString()}</td>
+                    <td className="px-2 py-1 border">{formatJSTDate(commit.commit.author.date)}</td>
                     <td className="px-2 py-1 border" title={commit.commit.message}>{commit.commit.message.length > 60 ? commit.commit.message.slice(0, 60) + '…' : commit.commit.message}</td>
                   </tr>
                 ))}
@@ -308,11 +398,10 @@ export default function RepoDashboard({ repos, token }: Props) {
           </ul>
 
           <h2>ファイル/ディレクトリ構成（ツリー）</h2>
-          <ul>
-            {tree.map((item: MinimalTreeItem) => (
-              <li key={item.sha + ':' + item.path}>{item.type}: {item.path}</li>
-            ))}
-          </ul>
+          {(() => {
+            const treeData = buildTree(tree as MinimalTreeItem[]);
+            return <TreeView nodes={treeData} />;
+          })()}
 
           <h2>ラベル一覧</h2>
           <ul>
