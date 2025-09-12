@@ -1,5 +1,6 @@
 # agileapp
 
+
 React/Next.js/TypeScriptによるアジャイル開発支援MVP。
 
 ## 主な技術
