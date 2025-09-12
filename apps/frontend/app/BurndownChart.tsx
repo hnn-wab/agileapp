@@ -33,17 +33,20 @@ function getBurndownData(issues: any[], start: string, end: string) {
   return { labels: days, data: burndown };
 }
 
+import { useState } from 'react';
+
 export default function BurndownChart({ issues }: { issues: any[] }) {
-  // 期間: 今日から過去6ヶ月（180日）
+  // 期間選択: 30, 60, 90日
+  const [days, setDays] = useState(30);
   const end = useMemo(() => {
     const today = new Date();
     return today.toISOString().slice(0, 10);
   }, []);
   const start = useMemo(() => {
     const d = new Date();
-    d.setDate(d.getDate() - 179); // 今日含めて180日間
+    d.setDate(d.getDate() - (days - 1));
     return d.toISOString().slice(0, 10);
-  }, []);
+  }, [days]);
   const burndown = useMemo(() => getBurndownData(issues, start, end), [issues, start, end]);
 
   if (!start || !end) return <div>バーンダウンデータなし</div>;
@@ -51,6 +54,17 @@ export default function BurndownChart({ issues }: { issues: any[] }) {
   return (
     <div style={{ maxWidth: 600 }}>
       <h2>バーンダウンチャート</h2>
+      <div style={{ marginBottom: 8 }}>
+        <label>
+          <input type="radio" name="days" value={30} checked={days === 30} onChange={() => setDays(30)} /> 直近30日
+        </label>
+        <label style={{ marginLeft: 12 }}>
+          <input type="radio" name="days" value={60} checked={days === 60} onChange={() => setDays(60)} /> 直近60日
+        </label>
+        <label style={{ marginLeft: 12 }}>
+          <input type="radio" name="days" value={90} checked={days === 90} onChange={() => setDays(90)} /> 直近90日
+        </label>
+      </div>
       <Line
         data={{
           labels: burndown.labels,
