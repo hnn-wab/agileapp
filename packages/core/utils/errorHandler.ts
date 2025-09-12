@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // エラーハンドリング設計例
 // API・アプリ両方のエラーを一元管理し、UI/ロジックで使いやすくする
 
@@ -34,38 +33,3 @@ export function handleApiError(error: unknown): ErrorType {
 export function getErrorMessage(error: ErrorType): string {
   return error.message || 'エラーが発生しました';
 }
-
-// 必要に応じて、エラー通知・ロギング・リトライ処理なども追加可能
-=======
-import { ErrorType } from '../types/error';
-
-export function handleApiError(error: any): ErrorType {
-  if (error.status) {
-    return {
-      type: 'api',
-      message: error.message || 'API error',
-      status: error.status,
-      details: error,
-    };
-  }
-  if (error.name === 'HttpError') {
-    return {
-      type: 'network',
-      message: error.message || 'Network error',
-      details: error,
-    };
-  }
-  if (error.name === 'AuthenticationError') {
-    return {
-      type: 'auth',
-      message: error.message || 'Authentication error',
-      details: error,
-    };
-  }
-  return {
-    type: 'unknown',
-    message: error?.message || 'Unknown error',
-    details: error,
-  };
-}
->>>>>>> 51e55cef (add scripts section to package.json and setup for Next.js dev server)
