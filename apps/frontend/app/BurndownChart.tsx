@@ -2,14 +2,15 @@
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { useMemo } from 'react';
+import type { GitHubIssue } from '../../../packages/core/types/github';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 // issues: GitHub Issue配列, start/end: チャートの期間（日付文字列: 'YYYY-MM-DD'）
-function getBurndownData(issues: any[], start: string, end: string) {
+function getBurndownData(issues: GitHubIssue[], start: string, end: string) {
   // 日付リスト生成
   const days: string[] = [];
-  let d = new Date(start);
+  const d = new Date(start);
   const endD = new Date(end);
   while (d <= endD) {
     days.push(d.toISOString().slice(0, 10));
@@ -35,7 +36,7 @@ function getBurndownData(issues: any[], start: string, end: string) {
 
 import { useState } from 'react';
 
-export default function BurndownChart({ issues }: { issues: any[] }) {
+export default function BurndownChart({ issues }: { issues: GitHubIssue[] }) {
   // 期間選択: 30, 60, 90日
   const [days, setDays] = useState(30);
   const end = useMemo(() => {

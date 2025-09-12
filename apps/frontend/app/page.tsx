@@ -1,6 +1,7 @@
 
 import { getServerSession } from 'next-auth';
-import { authOptions } from './api/auth/[...nextauth]/route';
+import { authOptions } from './api/auth/authOptions';
+import type { GitHubRepository } from '../../../packages/core/types/github';
 
 export default async function Home() {
   // NextAuthのセッションからアクセストークンを取得
@@ -22,10 +23,10 @@ export default async function Home() {
 
   // 2. 所属Org一覧
   const orgsRes = await octokit.orgs.listForAuthenticatedUser();
-  let orgRepos: any[] = [];
+  let orgRepos: GitHubRepository[] = [];
   for (const org of orgsRes.data) {
     const reposRes = await octokit.repos.listForOrg({ org: org.login, per_page: 100 });
-    orgRepos = orgRepos.concat(reposRes.data);
+  orgRepos = orgRepos.concat(reposRes.data as GitHubRepository[]);
   }
 
   // 3. ユーザーリポジトリとOrgリポジトリをマージ（重複除去: idで）
