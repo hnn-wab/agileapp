@@ -1,11 +1,11 @@
-"use client";
-import EmptyState from "../components/EmptyState";
-import { useState, useEffect } from "react";
-import { fetchIssues } from "../lib/githubApi";
-import type { GitHubIssue, GitHubLabel, GitHubMilestone } from '../../../packages/core/types/github';
-import LoadingSpinner from "../components/LoadingSpinner";
-import ErrorMessage from "../components/ErrorMessage";
-import dynamic from "next/dynamic";
+  "use client";
+  import EmptyState from "../components/EmptyState";
+  import { useState, useEffect } from "react";
+  import { fetchIssues } from "../lib/githubApi";
+  import type { GitHubIssue, GitHubLabel, GitHubMilestone } from '../../../packages/core/types/github';
+  import LoadingSpinner from "../components/LoadingSpinner";
+  import ErrorMessage from "../components/ErrorMessage";
+  import dynamic from "next/dynamic";
 type TreeNode = {
   name: string;
   path: string;
@@ -176,6 +176,42 @@ type Props = {
 };
 
 export default function RepoDashboard({ repos, token }: Props) {
+  // カテゴリごとの件数を集計
+  // Kanoカテゴリの選択肢
+  const kanoCategories = [
+    "当たり前品質",
+    "一元的品質",
+    "魅力的品質",
+    "無関心品質",
+    "逆品質"
+  ];
+  // チャート用データ整形: [{ category: string, issues: GitHubIssue[] }]
+  // Issueごとのカテゴリ選択状態（localStorageで永続化）
+  const [selectedCategories, setSelectedCategories] = useState<{ [id: number]: string }>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("selectedCategories");
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          return {};
+        }
+      }
+    }
+    return {};
+  });
+  // カテゴリごとの件数を集計
+  const categoryCounts = kanoCategories.reduce<{ [cat: string]: number }>((acc, cat) => {
+    acc[cat] = Object.values(selectedCategories).filter(v => v === cat).length;
+    return acc;
+  }, {});
+
+  // 選択状態が変わるたびにlocalStorageへ保存
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("selectedCategories", JSON.stringify(selectedCategories));
+    }
+  }, [selectedCategories]);
   const [selected, setSelected] = useState(0); // index
   const repo = repos[selected];
   const [repoInfo, setRepoInfo] = useState<MinimalRepoInfo | null>(null);
@@ -304,6 +340,18 @@ export default function RepoDashboard({ repos, token }: Props) {
           <BurndownChart issues={issues} />
 
           <h2>Issue一覧</h2>
+          {/* カテゴリごとの件数集計表示 */}
+          <div className="mb-4">
+            <h3 className="font-bold">カテゴリ別集計</h3>
+            <ul className="flex flex-wrap gap-4">
+              {kanoCategories.map(cat => (
+                <li key={cat} className="flex items-center gap-1">
+                  <span className="font-semibold">{cat}:</span>
+                  <span>{categoryCounts[cat]}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
           <div style={{ marginBottom: 8 }}>
             <label>
               <input type="radio" name="issueFilter" value="all" checked={issueFilter === 'all'} onChange={() => setIssueFilter('all')} /> 全て
@@ -326,13 +374,30 @@ export default function RepoDashboard({ repos, token }: Props) {
                     {filtered
                       .slice((issuePage - 1) * issuesPerPage, issuePage * issuesPerPage)
                       .map((issue: GitHubIssue) => (
-                        <li key={issue.id}>
-                          #{issue.number}: {issue.title} [{issue.state}]<br />
-                          作成日: {formatJSTDate(issue.created_at)} / 更新日: {formatJSTDate(issue.updated_at)}<br />
-                          担当者: {issue.assignee?.login || 'なし'}<br />
-                          マイルストーン: {issue.milestone?.title || 'なし'}<br />
-                          コメント数: {issue.comments}<br />
-                          本文: {issue.body?.slice(0, 100)}
+                        <li key={issue.id} className="flex items-center gap-2 mb-2">
+                          <div className="flex-1">
+                            #{issue.number}: {issue.title} [{issue.state}]<br />
+                            作成日: {formatJSTDate(issue.created_at)} / 更新日: {formatJSTDate(issue.updated_at)}<br />
+                            担当者: {issue.assignee?.login || 'なし'}<br />
+                            マイルストーン: {issue.milestone?.title || 'なし'}<br />
+                            コメント数: {issue.comments}<br />
+                            本文: {issue.body?.slice(0, 100)}
+                          </div>
+                          <select
+                            className="border rounded px-2 py-1"
+                            value={selectedCategories[issue.id] || ""}
+                            onChange={e =>
+                              setSelectedCategories(prev => ({
+                                ...prev,
+                                [issue.id]: e.target.value
+                              }))
+                            }
+                          >
+                            <option value="">カテゴリ選択</option>
+                            {kanoCategories.map(cat => (
+                              <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                          </select>
                         </li>
                       ))}
                   </ul>
