@@ -1,11 +1,12 @@
-  "use client";
-  import EmptyState from "../components/EmptyState";
-  import { useState, useEffect } from "react";
-  import { fetchIssues } from "../lib/githubApi";
-  import type { GitHubIssue, GitHubLabel, GitHubMilestone } from '../../../packages/core/types/github';
-  import LoadingSpinner from "../components/LoadingSpinner";
-  import ErrorMessage from "../components/ErrorMessage";
-  import dynamic from "next/dynamic";
+"use client";
+import ScatterMatrix from "./ScatterMatrix";
+import EmptyState from "../components/EmptyState";
+import { useState, useEffect } from "react";
+import { fetchIssues } from "../lib/githubApi";
+import type { GitHubIssue, GitHubLabel, GitHubMilestone } from '../../../packages/core/types/github';
+import LoadingSpinner from "../components/LoadingSpinner";
+import ErrorMessage from "../components/ErrorMessage";
+import dynamic from "next/dynamic";
 type TreeNode = {
   name: string;
   path: string;
@@ -178,6 +179,7 @@ type Props = {
 export default function RepoDashboard({ repos, token }: Props) {
   // カテゴリごとの件数を集計
   // Kanoカテゴリの選択肢
+  // カテゴリ一覧とバリュー初期値のマッピング
   const kanoCategories = [
     "当たり前品質",
     "一元的品質",
@@ -185,6 +187,13 @@ export default function RepoDashboard({ repos, token }: Props) {
     "無関心品質",
     "逆品質"
   ];
+  const categoryValueMap: { [cat: string]: number } = {
+    "逆品質": 1,
+    "当たり前品質": 3,
+    "無関心品質": 2,
+    "一元的品質": 5,
+    "魅力的品質": 6,
+  };
   // チャート用データ整形: [{ category: string, issues: GitHubIssue[] }]
   // Issueごとのカテゴリ選択状態（localStorageで永続化）
   const [selectedCategories, setSelectedCategories] = useState<{ [id: number]: string }>(() => {
@@ -229,6 +238,27 @@ export default function RepoDashboard({ repos, token }: Props) {
   const [issueFilter, setIssueFilter] = useState<'all' | 'open' | 'closed'>('all');
   const [issuePage, setIssuePage] = useState(1);
   const issuesPerPage = 20;
+  // バリュー・エフォート管理用（localStorage永続化）
+  const [issueValues, setIssueValues] = useState<{ [id: number]: { value?: number; effort?: number } }>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("issueValues");
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          return {};
+        }
+      }
+    }
+    return {};
+  });
+
+  // 変更時にlocalStorageへ保存
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("issueValues", JSON.stringify(issueValues));
+    }
+  }, [issueValues]);
 
   useEffect(() => {
     if (!repo) return;
@@ -339,6 +369,23 @@ export default function RepoDashboard({ repos, token }: Props) {
 
           <BurndownChart issues={issues} />
 
+          <h2>バリューエフォートマトリクス</h2>
+          <div className="mb-8">
+            <ScatterMatrix
+              data={issues
+                .filter(issue => {
+                  const v = issueValues[issue.id];
+                  return v && typeof v.value === 'number' && typeof v.effort === 'number';
+                })
+                .map(issue => ({
+                  x: issueValues[issue.id]?.effort ?? 0,
+                  y: issueValues[issue.id]?.value ?? 0,
+                  label: issue.title,
+                  id: issue.id,
+                  category: selectedCategories[issue.id] || '',
+                }))}
+            />
+          </div>
           <h2>Issue一覧</h2>
           {/* カテゴリごとの件数集計表示 */}
           <div className="mb-4">
@@ -383,21 +430,68 @@ export default function RepoDashboard({ repos, token }: Props) {
                             コメント数: {issue.comments}<br />
                             本文: {issue.body?.slice(0, 100)}
                           </div>
+                          {/* カテゴリ選択 */}
                           <select
                             className="border rounded px-2 py-1"
                             value={selectedCategories[issue.id] || ""}
-                            onChange={e =>
+                            onChange={e => {
+                              const cat = e.target.value;
                               setSelectedCategories(prev => ({
                                 ...prev,
-                                [issue.id]: e.target.value
-                              }))
-                            }
+                                [issue.id]: cat
+                              }));
+                              // カテゴリ選択時にvalueも自動セット
+                              if (cat && categoryValueMap[cat] !== undefined) {
+                                setIssueValues(prev => ({
+                                  ...prev,
+                                  [issue.id]: { ...prev[issue.id], value: categoryValueMap[cat] }
+                                }));
+                              }
+                            }}
                           >
                             <option value="">カテゴリ選択</option>
                             {kanoCategories.map(cat => (
                               <option key={cat} value={cat}>{cat}</option>
                             ))}
                           </select>
+                          {/* バリュー入力欄 */}
+                          <label className="ml-2 text-xs">バリュー
+                            <select
+                              className="border rounded px-1 py-0.5 ml-1"
+                              value={issueValues[issue.id]?.value ?? ""}
+                              onChange={e => {
+                                const v = e.target.value === "" ? undefined : Number(e.target.value);
+                                setIssueValues(prev => ({
+                                  ...prev,
+                                  [issue.id]: { ...prev[issue.id], value: v }
+                                }));
+                              }}
+                            >
+                              <option value="">-</option>
+                              {[1,2,3,4,5,6].map(n => (
+                                <option key={n} value={n}>{n}</option>
+                              ))}
+                            </select>
+                          </label>
+                          {/* エフォート入力欄 */}
+                          <label className="ml-2 text-xs">エフォート
+                            <select
+                              className="border rounded px-1 py-0.5 ml-1"
+                              value={issueValues[issue.id]?.effort ?? ""}
+                              onChange={e => {
+                                const v = e.target.value === "" ? undefined : Number(e.target.value);
+                                setIssueValues(prev => ({
+                                  ...prev,
+                                  [issue.id]: { ...prev[issue.id], effort: v }
+                                }));
+                              }}
+                            >
+                              <option value="">-</option>
+                              {[1,2,3,4,5].map(n => (
+                                <option key={n} value={n}>{n}</option>
+                              ))}
+                            </select>
+                          </label>
                         </li>
                       ))}
                   </ul>
