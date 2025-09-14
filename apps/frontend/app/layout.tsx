@@ -3,8 +3,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import React from 'react';
-import AuthProvider from '../components/AuthProvider';
-import AuthHeader from '../components/AuthHeader';
+
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -26,10 +25,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 	return (
 		<html lang="en">
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-				<AuthProvider>
-					<AuthHeader />
+				<div style={{ background: '#f6f8fa', borderBottom: '1px solid #d0d7de', padding: '12px 24px' }}>
+					<span style={{ fontWeight: 700, fontSize: '1.1rem', color: '#24292f' }}>agile app</span>
+				</div>
+				<div style={{ background: '#fff', minHeight: '100vh' }}>
 					{children}
-				</AuthProvider>
+				</div>
 			</body>
 		</html>
 	);

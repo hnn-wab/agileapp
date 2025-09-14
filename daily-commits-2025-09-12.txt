@@ -1,0 +1,34 @@
+=== 日報材料: 2025-09-12 のコミット一覧 ===
+
+日付: 2025-09-12
+
+コミット一覧:
+
+・コミットID: 9b3a621f825050e715fb9837a8c09a7421370638
+  内容: fix: frontendにnextを追加
+
+・コミットID: dda914d29ea7cb1463f9226bed35ba518c2e332a
+  内容: 型安全化: any型撲滅・独自型定義・ESLint/TS完全対応
+
+・コミットID: 42eaca3dbeddcbdca0fae487df10cfe83548876b
+  内容: fix: frontend依存パッケージ(autoprefixer, @octokit/rest)追加
+
+・コミットID: a757556b936895f3339fb3541b1410d7b3801656
+  内容: fix: frontend devDependencies (typescript, @types/react, @types/node) 追加
+
+・コミットID: b183e412d0fde39e9a0f4c765e0046acaf80c7e1
+  内容: fix: frontend devDependencies (@octokit/openapi-types, eslint)追加
+
+・コミットID: 1ba275d6627c1517405dd19b8d7f284a9648d58f
+  内容: fix: ルートdevDependencies (@octokit/openapi-types, @eslint/eslintrc)追加
+
+・コミットID: e1ab04a234147c63a8ee68d74cba5d2ec16d41c1
+  内容: chore: Vercelビルドトリガー用の微修正
+
+・コミットID: 4c1f25c42a3e9e780dd3ae40813390836de00a2f
+  内容: chore: prepare(husky install)削除（Vercelビルドエラー根本解消）
+
+・コミットID: c62e15bb7f2988d4d8eb1eac0a82d6dabadf9f9b
+  内容: chore: タブ名を'agile app'に変更
+
+=== 以上 ===

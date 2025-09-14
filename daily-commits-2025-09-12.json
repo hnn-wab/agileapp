@@ -1,0 +1,17 @@
+{
+  "date": "2025-09-12",
+  "repository": "agileapp",
+  "commits": [
+    {"id": "9b3a621f825050e715fb9837a8c09a7421370638", "message": "fix: frontendにnextを追加", "author": "hnn-wab", "email": "211074093+hnn-wab@users.noreply.github.com", "timestamp": 1757640184},
+    {"id": "dda914d29ea7cb1463f9226bed35ba518c2e332a", "message": "型安全化: any型撲滅・独自型定義・ESLint/TS完全対応", "author": "hnn-wab", "email": "211074093+hnn-wab@users.noreply.github.com", "timestamp": 1757643772},
+    {"id": "42eaca3dbeddcbdca0fae487df10cfe83548876b", "message": "fix: frontend依存パッケージ(autoprefixer, @octokit/rest)追加", "author": "hnn-wab", "email": "211074093+hnn-wab@users.noreply.github.com", "timestamp": 1757644117},
+    {"id": "a757556b936895f3339fb3541b1410d7b3801656", "message": "fix: frontend devDependencies (typescript, @types/react, @types/node) 追加", "author": "hnn-wab", "email": "211074093+hnn-wab@users.noreply.github.com", "timestamp": 1757644530},
+    {"id": "b183e412d0fde39e9a0f4c765e0046acaf80c7e1", "message": "fix: frontend devDependencies (@octokit/openapi-types, eslint)追加", "author": "hnn-wab", "email": "211074093+hnn-wab@users.noreply.github.com", "timestamp": 1757644900},
+    {"id": "1ba275d6627c1517405dd19b8d7f284a9648d58f", "message": "fix: ルートdevDependencies (@octokit/openapi-types, @eslint/eslintrc)追加", "author": "hnn-wab", "email": "211074093+hnn-wab@users.noreply.github.com", "timestamp": 1757645341},
+    {"id": "e1ab04a234147c63a8ee68d74cba5d2ec16d41c1", "message": "chore: Vercelビルドトリガー用の微修正", "author": "hnn-wab", "email": "211074093+hnn-wab@users.noreply.github.com", "timestamp": 1757646395},
+    {"id": "4c1f25c42a3e9e780dd3ae40813390836de00a2f", "message": "chore: prepare(husky install)削除（Vercelビルドエラー根本解消）", "author": "hnn-wab", "email": "211074093+hnn-wab@users.noreply.github.com", "timestamp": 1757646944},
+    {"id": "c62e15bb7f2988d4d8eb1eac0a82d6dabadf9f9b", "message": "chore: タブ名を'agile app'に変更", "author": "hnn-wab", "email": "211074093+hnn-wab@users.noreply.github.com", "timestamp": 1757647808},
+    {"id": "48dd67e9130f9e50d64939a8f38aaee2f067821e", "message": "fix: buildTreeのundefined安全化・Next.jsクライアント構文エラー修正", "author": "hnn-wab", "email": "211074093+hnn-wab@users.noreply.github.com", "timestamp": 1757681678}
+  ],
+  "total_commits": 10
+}

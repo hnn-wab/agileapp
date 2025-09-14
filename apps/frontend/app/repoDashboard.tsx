@@ -1,5 +1,9 @@
 "use client";
 import ScatterMatrix from "./ScatterMatrix";
+import { uiTheme } from "./uiTheme";
+import { CustomButton } from "./components/CustomButton";
+import { CustomSelect } from "./components/CustomSelect";
+import { CustomBadge } from "./components/CustomBadge";
 import EmptyState from "../components/EmptyState";
 import { useState, useEffect } from "react";
 import { fetchIssues } from "../lib/githubApi";
@@ -307,16 +311,23 @@ export default function RepoDashboard({ repos, token }: Props) {
   }, [selected, repo, token]);
 
   return (
-    <div>
+    <div
+      style={{
+        background: uiTheme.color.bg,
+        color: uiTheme.color.text,
+        minHeight: '100vh',
+        padding: uiTheme.spacing.lg,
+      }}
+    >
   {error && <ErrorMessage message={error} />}
       <h2>自分がアクセスできるリポジトリ一覧</h2>
-      <select value={selected} onChange={e => setSelected(Number(e.target.value))}>
+      <CustomSelect value={selected} onChange={e => setSelected(Number(e.target.value))}>
         {repos.map((r, i) => (
           <option value={i} key={r.id}>
             {r.owner.login} / {r.name}
           </option>
         ))}
-      </select>
+      </CustomSelect>
 
       {/* ローディング表示: repo選択済みでrepoInfo等が未取得の場合 */}
       {repo && !repoInfo && (
@@ -417,95 +428,125 @@ export default function RepoDashboard({ repos, token }: Props) {
                 {filtered.length === 0 ? (
                   <EmptyState text="Issueはありません" />
                 ) : (
-                  <ul>
+                  <div>
                     {filtered
                       .slice((issuePage - 1) * issuesPerPage, issuePage * issuesPerPage)
                       .map((issue: GitHubIssue) => (
-                        <li key={issue.id} className="flex items-center gap-2 mb-2">
-                          <div className="flex-1">
-                            #{issue.number}: {issue.title} [{issue.state}]<br />
-                            作成日: {formatJSTDate(issue.created_at)} / 更新日: {formatJSTDate(issue.updated_at)}<br />
-                            担当者: {issue.assignee?.login || 'なし'}<br />
-                            マイルストーン: {issue.milestone?.title || 'なし'}<br />
-                            コメント数: {issue.comments}<br />
-                            本文: {issue.body?.slice(0, 100)}
+                        <div
+                          key={issue.id}
+                          style={{
+                            background: uiTheme.color.card,
+                            borderRadius: uiTheme.radius.md,
+                            boxShadow: uiTheme.shadow.md,
+                            border: `1px solid ${uiTheme.color.border}`,
+                            padding: uiTheme.spacing.md,
+                            marginBottom: uiTheme.spacing.md,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            // gapは共通spacingで十分
+                          }}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: uiTheme.spacing.xs }}>{issue.title}</div>
+                            <div style={{ color: uiTheme.color.muted, fontSize: '0.75rem', marginBottom: uiTheme.spacing.xs }}>#{issue.number} / {issue.state}</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: uiTheme.spacing.sm, marginBottom: uiTheme.spacing.xs }}>
+                              <CustomBadge>
+                                {selectedCategories[issue.id] || '未分類'}
+                              </CustomBadge>
+                              <CustomBadge type="success">
+                                バリュー: {issueValues[issue.id]?.value ?? '-'}
+                              </CustomBadge>
+                              <CustomBadge type="warning">
+                                エフォート: {issueValues[issue.id]?.effort ?? '-'}
+                              </CustomBadge>
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: uiTheme.color.muted, marginBottom: uiTheme.spacing.xs }}>作成: {formatJSTDate(issue.created_at)} / 更新: {formatJSTDate(issue.updated_at)}</div>
+                            <div style={{ fontSize: '0.75rem', color: uiTheme.color.muted, marginBottom: uiTheme.spacing.xs }}>担当: {issue.assignee?.login || 'なし'} / マイルストーン: {issue.milestone?.title || 'なし'}</div>
+                            <div style={{ fontSize: '0.75rem', color: uiTheme.color.muted, marginBottom: uiTheme.spacing.xs }}>コメント: {issue.comments}</div>
+                            <div style={{ fontSize: '0.75rem', color: uiTheme.color.text }}>{issue.body?.slice(0, 100)}</div>
                           </div>
-                          {/* カテゴリ選択 */}
-                          <select
-                            className="border rounded px-2 py-1"
-                            value={selectedCategories[issue.id] || ""}
-                            onChange={e => {
-                              const cat = e.target.value;
-                              setSelectedCategories(prev => ({
-                                ...prev,
-                                [issue.id]: cat
-                              }));
-                              // カテゴリ選択時にvalueも自動セット
-                              if (cat && categoryValueMap[cat] !== undefined) {
-                                setIssueValues(prev => ({
-                                  ...prev,
-                                  [issue.id]: { ...prev[issue.id], value: categoryValueMap[cat] }
-                                }));
-                              }
-                            }}
-                          >
-                            <option value="">カテゴリ選択</option>
-                            {kanoCategories.map(cat => (
-                              <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                          </select>
-                          {/* バリュー入力欄 */}
-                          <label className="ml-2 text-xs">バリュー
-                            <select
-                              className="border rounded px-1 py-0.5 ml-1"
-                              value={issueValues[issue.id]?.value ?? ""}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: uiTheme.spacing.sm, minWidth: 180 }}>
+                            {/* カテゴリ選択 */}
+                            <CustomSelect
+                              value={selectedCategories[issue.id] || ""}
                               onChange={e => {
-                                const v = e.target.value === "" ? undefined : Number(e.target.value);
-                                setIssueValues(prev => ({
+                                const cat = e.target.value;
+                                setSelectedCategories(prev => ({
                                   ...prev,
-                                  [issue.id]: { ...prev[issue.id], value: v }
+                                  [issue.id]: cat
                                 }));
+                                // カテゴリ選択時にvalueも自動セット
+                                if (cat && categoryValueMap[cat] !== undefined) {
+                                  setIssueValues(prev => ({
+                                    ...prev,
+                                    [issue.id]: { ...prev[issue.id], value: categoryValueMap[cat] }
+                                  }));
+                                }
                               }}
                             >
-                              <option value="">-</option>
-                              {[1,2,3,4,5,6].map(n => (
-                                <option key={n} value={n}>{n}</option>
+                              <option value="">カテゴリ選択</option>
+                              {kanoCategories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
                               ))}
-                            </select>
-                          </label>
-                          {/* エフォート入力欄 */}
-                          <label className="ml-2 text-xs">エフォート
-                            <select
-                              className="border rounded px-1 py-0.5 ml-1"
-                              value={issueValues[issue.id]?.effort ?? ""}
-                              onChange={e => {
-                                const v = e.target.value === "" ? undefined : Number(e.target.value);
-                                setIssueValues(prev => ({
-                                  ...prev,
-                                  [issue.id]: { ...prev[issue.id], effort: v }
-                                }));
-                              }}
-                            >
-                              <option value="">-</option>
-                              {[1,2,3,4,5].map(n => (
-                                <option key={n} value={n}>{n}</option>
-                              ))}
-                            </select>
-                          </label>
-                        </li>
+                            </CustomSelect>
+                            {/* バリュー入力欄 */}
+                            <label className="text-xs">バリュー
+                              <CustomSelect
+                                value={issueValues[issue.id]?.value ?? ""}
+                                onChange={e => {
+                                  const v = e.target.value === "" ? undefined : Number(e.target.value);
+                                  setIssueValues(prev => ({
+                                    ...prev,
+                                    [issue.id]: { ...prev[issue.id], value: v }
+                                  }));
+                                }}
+                              >
+                                <option value="">-</option>
+                                {[1,2,3,4,5,6].map(n => (
+                                  <option key={n} value={n}>{n}</option>
+                                ))}
+                              </CustomSelect>
+                            </label>
+                            {/* エフォート入力欄 */}
+                            <label className="text-xs">エフォート
+                              <CustomSelect
+                                value={issueValues[issue.id]?.effort ?? ""}
+                                onChange={e => {
+                                  const v = e.target.value === "" ? undefined : Number(e.target.value);
+                                  setIssueValues(prev => ({
+                                    ...prev,
+                                    [issue.id]: { ...prev[issue.id], effort: v }
+                                  }));
+                                }}
+                              >
+                                <option value="">-</option>
+                                {[1,2,3,4,5].map(n => (
+                                  <option key={n} value={n}>{n}</option>
+                                ))}
+                              </CustomSelect>
+                            </label>
+                          </div>
+                        </div>
                       ))}
-                  </ul>
+                  </div>
                 )}
               </>
             );
           })()}
           <div style={{ margin: '12px 0' }}>
-            <button onClick={() => setIssuePage(p => Math.max(1, p - 1))} disabled={issuePage === 1}>前へ</button>
+            <CustomButton
+              onClick={() => setIssuePage(p => Math.max(1, p - 1))}
+              disabled={issuePage === 1}
+            >
+              前へ
+            </CustomButton>
             <span style={{ margin: '0 8px' }}>ページ {issuePage} / {Math.max(1, Math.ceil(issues.filter(issue => issueFilter === 'all' ? true : issue.state === issueFilter).length / issuesPerPage))}</span>
-            <button onClick={() => setIssuePage(p => p + 1)}
-              disabled={issuePage >= Math.ceil(issues.filter(issue => issueFilter === 'all' ? true : issue.state === issueFilter).length / issuesPerPage)}>
+            <CustomButton
+              onClick={() => setIssuePage(p => p + 1)}
+              disabled={issuePage >= Math.ceil(issues.filter(issue => issueFilter === 'all' ? true : issue.state === issueFilter).length / issuesPerPage)}
+            >
               次へ
-            </button>
+            </CustomButton>
           </div>
 
           <h2>Pull Request一覧</h2>
